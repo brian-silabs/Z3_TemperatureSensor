@@ -11,6 +11,12 @@ At the time of writing, this is done using Simplicity Studio v4 and GSDK 2.7.8
 
 {% include list.liquid all=true %}
 
+## Description ##
+This implementation runs a temperature sensor on a ThunderBoard Sense 2
+It can be used with [that gateway implementation](https://github.com/brian-silabs/Z3_GatewayHost)
+
+To pair and use it, follow the steps described in the section *"Running the example"*
+
 ## Documentation ##
 
 Official documentation can be found at our [Developer Documentation](https://docs.silabs.com/zigbee/latest/) page.

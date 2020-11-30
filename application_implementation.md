@@ -211,5 +211,5 @@ bool emberAfPluginIdleSleepOkToSleepCallback(uint32_t durationMs)
 }
 ```
 
--   Build and flash the generated binary (do not forget to flash a bootloader)on your kit.
+-   Build and flash the generated binary (do not forget to flash a bootloader) on your kit.
 
