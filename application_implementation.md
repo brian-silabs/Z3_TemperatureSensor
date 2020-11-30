@@ -17,46 +17,46 @@ Consequently, your Appbuilder based application implementation is going to be sp
 ## Appbuilder Based Implementation
 #### Plugins to add
 Through the *"Plugin"* tab, add thefollowing plugins (use the search bar to find it):
-* Network Steering
+* Network Steering  
     Used to join networks
 
-* Update TC Link Key
+* Update TC Link Key  
     Used to join Zigbee 3.0 centralized networks
 
-* Reporting
+* Reporting  
     Used to send periodic attribute reports
     Note that accuracy of reporting is relying on the LF clock source used (LFRCO, PLFRCO, LFXO)
 
-* I2C Driver
+* I2C Driver  
     Used to implement I2C for Si7021 communication
 
-* Temperature Si7021
+* Temperature Si7021  
     Driver implementation for the Si7021 (present on Thunder Board Sense boards)
 
-* Temperature Measurement Server Cluster
+* Temperature Measurement Server Cluster  
     Implementation of ZCL Temperature Measurement Server Cluster 
     This allows you to simply edit the plugin options and not waste time implementing any of it
 
-* Zigbee PRO Leaf Library 
+* Zigbee PRO Leaf Library  
     Lightened Zigbee PRO Library for End Devices use only
 
-* Find and Bind Initiator
+* Find and Bind Initiator  
     Used to bind our device to a dicoverable Temperature Measurement Client 
     Mandatory as reportings only work using bindings - per spec
 
-* Idle/Sleep
+* Idle/Sleep  
     Used to bring the device down to EM2
 
 * Identify Cluster
 
-* Heartbeat
+* Heartbeat  
     Blinks an LED to display stack status (only applicable when deep sleep is disabled)
 
 <img src="./images/AI_1_1_Plugins.png" alt="" width="500" class="center">
 
 #### Callbacks to add
 Through the *"Callbacks"* tab, add the following functions (use the search bar to find it):
-* Main Init
+* Main Init  
     Will be used to add extra init code
 * Complete (Network Steering)
 * Complete (Find And Bind Initiator)
