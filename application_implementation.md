@@ -14,8 +14,8 @@ Be careful:
 Consequently, your Appbuilder based application implementation is going to be split into 2 main parts, the Plugins & Callbacks implementation, and your own code.
 
 
-## Appbuilder Based Implementation
-#### Plugins to add
+## Plugins Callbacks and Events 
+#### Plugins
 Through the *"Plugin"* tab, add thefollowing plugins (use the search bar to find it):
 * Network Steering  
     Used to join networks
@@ -54,7 +54,7 @@ Through the *"Plugin"* tab, add thefollowing plugins (use the search bar to find
 
 <img src="./images/AI_1_1_Plugins.png" alt="" width="500" class="center">
 
-#### Callbacks to add
+#### Callbacks
 Through the *"Callbacks"* tab, add the following functions (use the search bar to find it):
 * Main Init  
     Will be used to add extra init code
@@ -78,12 +78,10 @@ There add 2 new events:
 All of the previous applies only when you click the "Generate" button on top of the ISC file
 
 
-## Coded Implementation
+## C Implementation
 Now that our project has its Plugins added, we will need to implement callback functions as well as events
 By default, all callback implementations go to *project_name*_callbacks.c file
 We will work there in this example
-
-#### Callback implementations
 
 -   Add the following lines at the top of the file:  
 
@@ -176,7 +174,8 @@ void emberAfPluginNetworkSteeringCompleteCallback(EmberStatus status,
 }
 ```
 
--   Implement the forward declared schedule find and bind function:
+-   Implement the forward declared schedule find and bind function:  
+
 ```c
 static void scheduleFindingAndBindingForInitiator(void)
 {
@@ -187,7 +186,8 @@ static void scheduleFindingAndBindingForInitiator(void)
 
 We do that to let time to the stack to initiate networking operations first
 
--   Also, edit the find and bind event handler:
+-   Also, edit the find and bind event handler:  
+
 ```c
 void findingAndBindingEventHandler(void)
 {
@@ -196,10 +196,12 @@ void findingAndBindingEventHandler(void)
   emberAfCorePrintln("Find and bind initiator %p: 0x%X", "start", status);
 }
 ```
+
 This starts a find and bind procedure on the 1st Endpoint
 In this example it is fixed, but you can have it changed at runtime as long as your local endpoint exists
 
--   Finally implement the find and bind complete to close the full joining procedure:
+-   Finally implement the find and bind complete to close the full joining procedure:  
+
 ```c
 void emberAfPluginFindAndBindInitiatorCompleteCallback(EmberStatus status)
 {
@@ -209,7 +211,7 @@ void emberAfPluginFindAndBindInitiatorCompleteCallback(EmberStatus status)
 ```
 
 At this stage, network joining is complete and working
--   In order to use the CLI, we will disable low power by implementing the Ok To Sleep function so it returns false :
+-   In order to use the CLI, we will disable low power by implementing the Ok To Sleep function so it returns false :  
 
 ```c
 bool emberAfPluginIdleSleepOkToSleepCallback(uint32_t durationMs)
