@@ -44,6 +44,11 @@ Through the *"Plugin"* tab, add thefollowing plugins (use the search bar to find
     Used to bind our device to a dicoverable Temperature Measurement Client 
     Mandatory as reportings only work using bindings - per spec
 
+* Idle/Sleep
+    Used to bring the device down to EM2
+
+* Identify Cluster
+
 * Heartbeat
     Blinks an LED to display stack status (only applicable when deep sleep is disabled)
 
@@ -54,7 +59,9 @@ Through the *"Callbacks"* tab, add the following functions (use the search bar t
 * Main Init
     Will be used to add extra init code
 * Complete (Network Steering)
+* Complete (Find And Bind Initiator)
 * Hal button ISR
+* Ok To Sleep
 
 <img src="./images/AI_1_2_Callbacks.png" alt="" width="500" class="center">
 
@@ -92,148 +99,117 @@ EmberEventControl findingAndBindingEventControl;
 
 void networkSteeringEventHandler(void);
 void findingAndBindingEventHandler(void);
+static void scheduleFindingAndBindingForInitiator(void);
+
+static bool commissioning = false;
+static uint8_t lastButton;
 ```
 
-- Edit the emberAfMainInitCallback implementation so that it looks like this:
+-   Edit the emberAfMainInitCallback implementation so that it looks like this:
 ```c
 void emberAfMainInitCallback(void) {
     GPIO_PinModeSet(BSP_I2CSENSOR_ENABLE_PORT, BSP_I2CSENSOR_ENABLE_PIN, gpioModePushPull, 1);
 }
 ```
+This powers up the Si7021
 
-- Edit the networkManagementEventHandler as follows:
+-   Implement the HAL Button ISR so it triggers an network steering (Joining):
 ```c
-void networkManagementEventHandler(void) {
-     emberEventControlSetInactive(networkManagementEventControl);
-     if (emberAfNetworkState() != EMBER_JOINED_NETWORK) {
-        EmberStatus status = emberAfPluginNetworkCreatorStart(false);
-        emberAfCorePrintln("%p network %p: 0x%X", "Form", "start", status);
-     }
+void emberAfHalButtonIsrCallback(uint8_t button,
+                                 uint8_t state)
+{
+  if (state == BUTTON_RELEASED) {
+    lastButton = button;
+    emberEventControlSetActive(networkSteeringEventControl);
+  }
+}
+```
+
+-   Edit the networkSteeringEventHandler as follows:
+```c
+void networkSteeringEventHandler(void)
+{
+  EmberStatus status;
+
+  emberEventControlSetInactive(networkSteeringEventControl);
+
+  if (emberAfNetworkState() == EMBER_JOINED_NETWORK) {
+    if (lastButton == BUTTON0) {
+        //To be programmed with something
+    } else if (lastButton == BUTTON1) {
+        //To be programmed with something
+    }
+  } else {
+
+    status = emberAfPluginNetworkSteeringStart();
+    emberAfCorePrintln("%p network %p: 0x%X",
+                       "Join",
+                       "start",
+                       status);
+    commissioning = true;
+  }
 }   
 ```
+If the device is not joined to a network, this will trigger a Network steering procedure
+Otherwise nothing (anything else can be coded)
+Note that we declared a static *commissioning* variable so that the full joining proces covers both steering and binding
 
--	Also, edit the network creator complete callback to have a feedback:
-
+Finally, implement the Network steering Complete callback so it triggers a find and bind:
 ```c
-void emberAfPluginNetworkCreatorCompleteCallback(const EmberNetworkParameters *network,
-                                                 bool usedSecondaryChannels) {
-    emberAfCorePrintln("%p network %p: 0x%X",
-                       "Form distributed",
-                       "complete",
-                       EMBER_SUCCESS);
+void emberAfPluginNetworkSteeringCompleteCallback(EmberStatus status,
+                                                  uint8_t totalBeacons,
+                                                  uint8_t joinAttempts,
+                                                  uint8_t finalState)
+{
+  emberAfCorePrintln("%p network %p: 0x%X", "Join", "complete", status);
+
+  if (status != EMBER_SUCCESS) {
+    commissioning = false;
+  } else {
+    scheduleFindingAndBindingForInitiator();
+  }
 }
 ```
 
-We have implemented the network formation part upon reset, now we will program its opening to other devices for joining.
--	Edit the networkOpeningEventHandler as follows :
-
+-   Implement the forward declared schedule find and bind function:
 ```c
-void networkOpeningEventHandler(void) {
-    emberEventControlSetInactive(networkOpeningEventControl);
-    if (emberAfNetworkState() == EMBER_JOINED_NETWORK) {
-        emberAfPermitJoin(45,false);
-        emberAfPluginFindAndBindTargetStart(WINDOW_COVERING_ENDPOINT);
-    }
+static void scheduleFindingAndBindingForInitiator(void)
+{
+  emberEventControlSetDelayMS(findingAndBindingEventControl,
+                              200);
 }
 ```
+We do that to let time to the stack to initiate networking operations first
 
--	Edit the emberAfHalButtonIsrCallback as follows:
-
+-   Also, edit the find and bind event handler:
 ```c
-void emberAfHalButtonIsrCallback(int8u button, int8u state) {
-    if (state == BUTTON_RELEASED) {
-        emberEventControlSetActive(networkOpeningEventControl);
-    }
+void findingAndBindingEventHandler(void)
+{
+  emberEventControlSetInactive(findingAndBindingEventControl);
+  EmberStatus status = emberAfPluginFindAndBindInitiatorStart(TEMPERATURE_MEASUREMENT_ENDPOINT);
+  emberAfCorePrintln("Find and bind initiator %p: 0x%X", "start", status);
 }
 ```
+This starts a find and bind procedure on the 1st Endpoint
+In this example it is fixed, but you can have it changed at runtime as long as your local endpoint exists
 
--	Finally, we will output the ZCL commands received by a remote :
-
+-   Finally implement the find and bind complete to close the full joining procedure:
 ```c
-/** @brief Window Covering Cluster Window Covering Down Close
- *
- *
- *
- */
-boolean emberAfWindowCoveringClusterWindowCoveringDownCloseCallback(void) {
-    emberAfCorePrintln("Down Close received");
-    return false;
-}
-
-/** @brief Window Covering Cluster Window Covering Up Open
- *
- *
- *
- */
-boolean emberAfWindowCoveringClusterWindowCoveringUpOpenCallback(void) {
-    emberAfCorePrintln("Up Open received");
-    return false;
-}
-
-/** @brief Window Covering Cluster Window Covering Stop
- *
- *
- *
- */
-boolean emberAfWindowCoveringClusterWindowCoveringStopCallback(void) {
-    emberAfCorePrintln("Stop received");
-    return false;
+void emberAfPluginFindAndBindInitiatorCompleteCallback(EmberStatus status)
+{
+  emberAfCorePrintln("Find and bind initiator %p: 0x%X", "complete", status);
+  commissioning = false;
 }
 ```
 
--	Build and flash the generated binary. Open a terminal on your kit.
--	Not working? Generate a bootloader project
--	Unreadable output? Retarget Vcom to enable through hardware configurator
--	Now, flash the remote-control binary on a second kit, and open a terminal.
--	Call the following CLI commands on it:
-
-```console
-zcl window up
-```
-
-or
-
-```console
-zcl window down
-```
-
-or
-
-```console
-zcl window stop
-```
-
-then
-
-```console
-bsend 1
-```
-
-And look at the output on the motor side
-
-```
----
-sort: 2
----
-```
-
-- 	Add some code mentioning its language
-
+At this stage, network joining is complete and working
+In order to use the CLI, we will disable low power by implementing the Ok To Sleep function so it returns false :
 ```c
-#include EMBER_AF_API_NETWORK_CREATOR
-#include EMBER_AF_API_NETWORK_CREATOR_SECURITY
-#include EMBER_AF_API_FIND_AND_BIND_TARGET
-
-#define WINDOW_COVERING_ENDPOINT (1)
-EmberEventControl networkManagementEventControl;
-EmberEventControl networkOpeningEventControl;
-
-void networkManagementEventHandler(void);
-void networkOpeningEventHandler(void);
+bool emberAfPluginIdleSleepOkToSleepCallback(uint32_t durationMs)
+{
+	return false;
+}
 ```
 
--	Add some console steps
+-   Build and flash the generated binary (do not forget to flash a bootloader)on your kit.
 
-```console
-zcl window up
-```
