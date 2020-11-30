@@ -6,12 +6,15 @@ sort: 1
 
 ## Create the project
 -   Create a new Zigbee SoC project based on a *ZigbeeMinimal* project  
+
 <img src="./images/PC_1_ProjectList.png" alt="" width="500" class="center">
 
 -   Rename your project to *Z3_TemperatureSensor*  
+
 <img src="./images/PC_1_ProjectName.png" alt="" width="500" class="center">
 
 -   Select the target and desired toolchain (Thunderboard Sense 2 + GCC here)  
+
 <img src="./images/PC_1_TargetAndToolchain.png" alt="" width="500" class="center">
 
 
@@ -19,6 +22,7 @@ sort: 1
 #### Hardware  
 -   Open the .ISC and go to the HAL tab and click *"Open Hardware Configurator"*  
 Alternatively open the .hwconf file located at the root of your project  
+
 <img src="./images/PC_2_1_HarwareConfiguratorGeneral.png" alt="" width="500" class="center">
 
 -   Go to *"DefaultMode Peripherals"* and enable the *"I2C Sensor"*  
