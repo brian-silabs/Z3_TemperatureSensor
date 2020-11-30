@@ -1,5 +1,13 @@
+<img src="./images/silabs_logo.png" alt="" width="200" class="center">
+
 # Z3_TemperatureSensor
-This repository holds documentation and implementation on how to create an Temperature Sensor on a thunderboard Sense 2
+This repository holds documentation and implementation on how to create a simple Temperature Sensor on a thunderboard Sense 2
+
+In order to proceed, you will need to download EmberZNet SDK through Simplicity Studio
+The SDK's access can only be requested using the serial number coming from this development kit :
+[SLWSTK6000B](https://www.silabs.com/development-tools/wireless/zigbee/efr32mg-zigbee-thread-starter-kit)
+
+At the time of writing, this is done using Simplicity Studio v4 and GSDK 2.7.8
 
 {% include list.liquid all=true %}
 
