@@ -1,4 +1,4 @@
-# Z3 TemperatureSensor
+# Z3 Temperature Sensor
 This repository holds documentation and implementation on how to create a simple Temperature Sensor on a thunderboard Sense 2
 
 In order to proceed, you will need to download EmberZNet SDK through Simplicity Studio
