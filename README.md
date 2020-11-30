@@ -1,5 +1,3 @@
-<img src="./images/silabs_logo.png" alt="" width="200" class="center">
-
 # Z3 TemperatureSensor
 This repository holds documentation and implementation on how to create a simple Temperature Sensor on a thunderboard Sense 2
 
