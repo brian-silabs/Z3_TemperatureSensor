@@ -85,7 +85,8 @@ We will work there in this example
 
 #### Callback implementations
 
--   Add the following lines at the top of the file:
+-   Add the following lines at the top of the file:  
+
 ```c
 #include EMBER_AF_API_NETWORK_STEERING
 #include EMBER_AF_API_FIND_AND_BIND_INITIATOR
@@ -105,7 +106,8 @@ static bool commissioning = false;
 static uint8_t lastButton;
 ```
 
--   Edit the emberAfMainInitCallback implementation so that it looks like this:
+-   Edit the emberAfMainInitCallback implementation so that it looks like this:  
+
 ```c
 void emberAfMainInitCallback(void) {
     GPIO_PinModeSet(BSP_I2CSENSOR_ENABLE_PORT, BSP_I2CSENSOR_ENABLE_PIN, gpioModePushPull, 1);
@@ -113,7 +115,8 @@ void emberAfMainInitCallback(void) {
 ```
 This powers up the Si7021
 
--   Implement the HAL Button ISR so it triggers an network steering (Joining):
+-   Implement the HAL Button ISR so it triggers an network steering (Joining):  
+
 ```c
 void emberAfHalButtonIsrCallback(uint8_t button,
                                  uint8_t state)
@@ -125,14 +128,15 @@ void emberAfHalButtonIsrCallback(uint8_t button,
 }
 ```
 
--   Edit the networkSteeringEventHandler as follows:
+-   Edit the networkSteeringEventHandler as follows:  
+
 ```c
 void networkSteeringEventHandler(void)
 {
   EmberStatus status;
-
+  
   emberEventControlSetInactive(networkSteeringEventControl);
-
+  
   if (emberAfNetworkState() == EMBER_JOINED_NETWORK) {
     if (lastButton == BUTTON0) {
         //To be programmed with something
@@ -140,7 +144,6 @@ void networkSteeringEventHandler(void)
         //To be programmed with something
     }
   } else {
-
     status = emberAfPluginNetworkSteeringStart();
     emberAfCorePrintln("%p network %p: 0x%X",
                        "Join",
@@ -148,13 +151,15 @@ void networkSteeringEventHandler(void)
                        status);
     commissioning = true;
   }
-}   
+}
 ```
+
 If the device is not joined to a network, this will trigger a Network steering procedure
 Otherwise nothing (anything else can be coded)
 Note that we declared a static *commissioning* variable so that the full joining proces covers both steering and binding
 
-Finally, implement the Network steering Complete callback so it triggers a find and bind:
+-   Finally, implement the Network steering Complete callback so it triggers a find and bind:
+
 ```c
 void emberAfPluginNetworkSteeringCompleteCallback(EmberStatus status,
                                                   uint8_t totalBeacons,
@@ -178,7 +183,8 @@ static void scheduleFindingAndBindingForInitiator(void)
   emberEventControlSetDelayMS(findingAndBindingEventControl,
                               200);
 }
-```
+```  
+
 We do that to let time to the stack to initiate networking operations first
 
 -   Also, edit the find and bind event handler:
@@ -203,11 +209,12 @@ void emberAfPluginFindAndBindInitiatorCompleteCallback(EmberStatus status)
 ```
 
 At this stage, network joining is complete and working
-In order to use the CLI, we will disable low power by implementing the Ok To Sleep function so it returns false :
+-   In order to use the CLI, we will disable low power by implementing the Ok To Sleep function so it returns false :
+
 ```c
 bool emberAfPluginIdleSleepOkToSleepCallback(uint32_t durationMs)
 {
-	return false;
+    return false;
 }
 ```
 
