@@ -48,18 +48,23 @@ remove,ATTRIBUTES
 compile,DEBUG
 compile,EMBER_AF_PLUGIN_I2C_DRIVER
 remove,EMBER_AF_PLUGIN_IDLE_SLEEP
+compile,EMBER_AF_PLUGIN_REPORTING
 compile,EMBER_AF_PLUGIN_TEMPERATURE_MEASUREMENT_SERVER
 compile,EMBER_AF_PLUGIN_TEMPERATURE_SI7021
+compile,REPORTING
 compile,TEMP_MEASUREMENT_CLUSTER
 compile,ZDO
 enable,DEBUG
 enable,EMBER_AF_PLUGIN_I2C_DRIVER
 enable,EMBER_AF_PLUGIN_IDLE_SLEEP
+enable,EMBER_AF_PLUGIN_REPORTING
 enable,EMBER_AF_PLUGIN_TEMPERATURE_MEASUREMENT_SERVER
 enable,EMBER_AF_PLUGIN_TEMPERATURE_SI7021
 enable,TEMP_MEASUREMENT_CLUSTER
 }
 {setupId:eventConfiguration
+networkSteeringEventControl,networkSteeringEventHandler
+findingAndBindingEventControl,findingAndBindingEventHandler
 }
 {setupId:halOptions
 }
@@ -378,6 +383,8 @@ callbacks:emberAfStackStatusCallback
 callbacks:emberAfPluginNetworkSteeringCompleteCallback
 callbacks:emberAfPluginIdleSleepOkToSleepCallback
 callbacks:emberAfMainInitCallback
+callbacks:emberAfHalButtonIsrCallback
+callbacks:emberAfPluginFindAndBindInitiatorCompleteCallback
 }
 {setupId:zclCustomizer
 }
@@ -528,7 +535,8 @@ appPlugin:i2c-driver,true
 appPlugin:i2c-driver-stub,false
 appPlugin:ias-zone-client,false
 appPlugin:ias-zone-server,false
-appPlugin:identify,false
+appPlugin:identify,true
+
 appPlugin:identify-feedback,false
 appPlugin:idle-sleep,true
 
@@ -682,9 +690,9 @@ appPlugin:xmodem-sender,false
 appPlugin:zcl-framework-core,true
 
 appPlugin:zigbee-event-logger-stub,false
-appPlugin:zigbee-pro-leaf-library,false
-appPlugin:zigbee-pro-library,true
+appPlugin:zigbee-pro-leaf-library,true
 
+appPlugin:zigbee-pro-library,false
 appPlugin:zigbee-pro-stack-alt-mac-library,false
 appPlugin:zigbee-r22-support-library,false
 appPlugin:zll-commissioning-client,false

@@ -21,6 +21,58 @@
 // lost.
 
 #include "app/framework/include/af.h"
+#include EMBER_AF_API_NETWORK_STEERING
+#include EMBER_AF_API_FIND_AND_BIND_INITIATOR
+
+#include "em_gpio.h"
+
+#define TEMPERATURE_MEASUREMENT_ENDPOINT (1)
+
+EmberEventControl networkSteeringEventControl;
+EmberEventControl findingAndBindingEventControl;
+
+void networkSteeringEventHandler(void);
+void findingAndBindingEventHandler(void);
+static void scheduleFindingAndBindingForInitiator(void);
+
+static bool commissioning = false;
+static uint8_t lastButton;
+
+void networkSteeringEventHandler(void)
+{
+  EmberStatus status;
+
+  emberEventControlSetInactive(networkSteeringEventControl);
+
+  if (emberAfNetworkState() == EMBER_JOINED_NETWORK) {
+    if (lastButton == BUTTON0) {
+    	//To be programmed with something
+    } else if (lastButton == BUTTON1) {
+    	//To be programmed with something
+    }
+  } else {
+
+    status = emberAfPluginNetworkSteeringStart();
+    emberAfCorePrintln("%p network %p: 0x%X",
+                       "Join",
+                       "start",
+                       status);
+    commissioning = true;
+  }
+}
+
+static void scheduleFindingAndBindingForInitiator(void)
+{
+  emberEventControlSetDelayMS(findingAndBindingEventControl,
+                              200);
+}
+
+void findingAndBindingEventHandler(void)
+{
+  emberEventControlSetInactive(findingAndBindingEventControl);
+  EmberStatus status = emberAfPluginFindAndBindInitiatorStart(TEMPERATURE_MEASUREMENT_ENDPOINT);
+  emberAfCorePrintln("Find and bind initiator %p: 0x%X", "start", status);
+}
 
 /** @brief Stack Status
  *
@@ -36,6 +88,26 @@ bool emberAfStackStatusCallback(EmberStatus status)
 {
   // This value is ignored by the framework.
   return false;
+}
+
+/** @brief Hal Button Isr
+ *
+ * This callback is called by the framework whenever a button is pressed on the
+ * device. This callback is called within ISR context.
+ *
+ * @param button The button which has changed state, either BUTTON0 or BUTTON1
+ * as defined in the appropriate BOARD_HEADER.  Ver.: always
+ * @param state The new state of the button referenced by the button parameter,
+ * either ::BUTTON_PRESSED if the button has been pressed or ::BUTTON_RELEASED
+ * if the button has been released.  Ver.: always
+ */
+void emberAfHalButtonIsrCallback(uint8_t button,
+                                 uint8_t state)
+{
+  if (state == BUTTON_RELEASED) {
+    lastButton = button;
+    emberEventControlSetActive(networkSteeringEventControl);
+  }
 }
 
 /** @brief Complete
@@ -59,6 +131,26 @@ void emberAfPluginNetworkSteeringCompleteCallback(EmberStatus status,
                                                   uint8_t finalState)
 {
   emberAfCorePrintln("%p network %p: 0x%X", "Join", "complete", status);
+
+  if (status != EMBER_SUCCESS) {
+    commissioning = false;
+  } else {
+    scheduleFindingAndBindingForInitiator();
+  }
+}
+
+/** @brief Complete
+ *
+ * This callback is fired by the initiator when the Find and Bind process is
+ * complete.
+ *
+ * @param status Status code describing the completion of the find and bind
+ * process Ver.: always
+ */
+void emberAfPluginFindAndBindInitiatorCompleteCallback(EmberStatus status)
+{
+  emberAfCorePrintln("Find and bind initiator %p: 0x%X", "complete", status);
+  commissioning = false;
 }
 
 
